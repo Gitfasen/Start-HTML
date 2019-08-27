@@ -1,8 +1,7 @@
-var syntax        = 'sass'; // Syntax: sass or scss;
-
 var gulp          = require('gulp'),
+		importAllFile	= require('less-plugin-glob'),
+		less					= require('gulp-less'),
 		gutil         = require('gulp-util' ),
-		sass          = require('gulp-sass'),
 		browserSync   = require('browser-sync'),
 		concat        = require('gulp-concat'),
 		uglify        = require('gulp-uglify'),
@@ -11,11 +10,9 @@ var gulp          = require('gulp'),
 		cleancss      = require('gulp-clean-css'),
 		rename        = require('gulp-rename'),
 		autoprefixer  = require('gulp-autoprefixer'),
-		notify        = require("gulp-notify"),
 		include       = require('gulp-html-tag-include'),
-		bulkSass      = require('gulp-sass-bulk-import'),
-		imagemin      = require('gulp-imagemin'),
-		htmlmin       = require('gulp-htmlmin');
+		htmlmin       = require('gulp-htmlmin'),
+		sourcemaps		= require('gulp-sourcemaps');
 
 gulp.task('browser-sync', function() {
 	browserSync({
@@ -24,40 +21,33 @@ gulp.task('browser-sync', function() {
 		},
 		notify: false,
 		open: false,
-		// online: false, // Work Offline Without Internet Connection
-		// tunnel: true, tunnel: "projectname", // Demonstration page: http://projectname.localtunnel.me
 	})
 });
 
 gulp.task('html', function() {
-    return gulp.src(['app/html/*.html'])
-        .pipe(include())
-        .pipe(htmlmin({collapseWhitespace: true}))
-        .pipe(gulp.dest('app'));
+	return gulp.src(['app/html/*.html'])
+		.pipe(include())
+		.pipe(htmlmin({collapseWhitespace: true}))
+		.pipe(gulp.dest('app'));
 });
 
-
-gulp.task('styles', function() {
-	return gulp.src('app/'+syntax+'/*.'+syntax+'')
-	.pipe(bulkSass())
-	.pipe(sass({ outputStyle: 'expanded' }).on("error", notify.onError()))
+gulp.task('less', function() {
+	return gulp.src( 'app/less/main.less')
+	.pipe(sourcemaps.init())
+	.pipe(less({plugins: [ importAllFile ]}))
+	.pipe(sourcemaps.init({loadMaps: true}))
 	.pipe(rename({ suffix: '.min', prefix : '' }))
-	.pipe(autoprefixer(['last 15 versions']))
-	.pipe(cleancss( {level: { 1: { specialComments: 0 } } })) // Opt., comment out when debugging
-	.pipe(gulp.dest('app/css'))
+	.pipe(autoprefixer(['cover 99.5%']))
+	.pipe(cleancss())
+	.pipe(sourcemaps.write())
+	.pipe(gulp.dest( 'app/css/' ))
 	.pipe(browserSync.stream())
 });
 
 gulp.task('js', function() {
 	return gulp.src([
 		'app/libs/jquery/dist/jquery.min.js',
-		'app/libs/jQuery.mmenu/dist/jquery.mmenu.all.js',
-		'app/libs/jQuery.mmenu/src/jquery.mmenu.debugger.js',
-		'app/libs/magnific-popup/dist/jquery.magnific-popup.js',
-		'app/libs/jquery.cookie/jquery.cookie.js',
-		'app/libs/modal-video/js/jquery-modal-video.js',
-		'app/libs/modal-video/js/modal-video.js',
-		'app/libs/page-scroll-to-id/jquery.malihu.PageScroll2id.js',
+		'app/libs/owl-carousel/owl.carousel.min.js',
 		'app/js/common.js', // Always at the end
 		])
 	.pipe(concat('scripts.min.js'))
@@ -67,27 +57,17 @@ gulp.task('js', function() {
 	.pipe(browserSync.reload({ stream: true }))
 });
 
-
-
-gulp.task('watch', ['html', 'styles', 'js', 'browser-sync'], function() {
-    gulp.watch('app/html/**/*.html', ['html']);
-	gulp.watch('app/'+syntax+'/**/*.'+syntax+'', ['styles']);
+gulp.task('watch', ['html', 'less', 'js', 'browser-sync'], function() {
+	gulp.watch('app/html/**/*.html', ['html']);
+	gulp.watch('app/less/**/*.less', ['less']);
 	gulp.watch(['libs/**/*.js', 'app/js/common.js'], ['js']);
 	gulp.watch('app/*.html', browserSync.reload)
 });
 
-gulp.task('imagemin', function() {
-    return gulp.src('app/img/**/*')
-    // .pipe(cache(imagemin())) // Cache Images
-        .pipe(imagemin())
-        .pipe(gulp.dest('dist/img'));
-});
-
-gulp.task('build', ['removedist', 'styles', 'js', 'html', 'imagemin'], function() {
+gulp.task('build', ['removedist', 'less', 'js', 'html'], function() {
 
     var buildFiles = gulp.src([
         'app/*.html',
-        'app/.htaccess',
     ]).pipe(gulp.dest('dist'));
 
     var buildCss = gulp.src([
@@ -100,7 +80,11 @@ gulp.task('build', ['removedist', 'styles', 'js', 'html', 'imagemin'], function(
 
     var buildFonts = gulp.src([
         'app/fonts/**/*',
-    ]).pipe(gulp.dest('dist/fonts'));
+		]).pipe(gulp.dest('dist/fonts'));
+		
+		var buildImage = gulp.src([
+			'app/img/**/*',
+	]).pipe(gulp.dest('dist/img'));
 
 });
 gulp.task('removedist', function() { return del.sync('dist'); });

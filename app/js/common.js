@@ -1,3 +1,5 @@
-(function () {
-    //js
-})();
+(function($) {
+				
+
+	
+})(jQuery);
