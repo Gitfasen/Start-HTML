@@ -1,3 +1,4 @@
+const prod          = process.env.NODE_ENV == 'production'
 const gulp          = require('gulp')
 const	server        = require('browser-sync').create()
 const	rename_file   = require('gulp-rename')
@@ -20,8 +21,6 @@ const	webpack       = require('webpack')
 const	webpackStream = require('webpack-stream')
 const	webpackConfig = require('./webpack.config.js')
 
-const prod = process.env.NODE_ENV == 'production'
-
 function styles() {
 	return gulp.src( './src/scss/main.scss')
 	.pipe(gulpif(!prod, sourcemaps.init()))
@@ -34,7 +33,8 @@ function styles() {
 	.pipe(gulpif(prod, autoprefixer(['cover 99.5%'])))
 	.pipe(gulpif(prod, cleancss()))
 	.pipe(gulpif(!prod, sourcemaps.write()))
-	.pipe(gulp.dest( 'dist/css/' ));
+	.pipe(gulp.dest( 'dist/css/' ))
+	.pipe(server.stream())
 }
 
 function scripts() {
@@ -42,6 +42,7 @@ function scripts() {
 	.pipe(webpackStream(webpackConfig), webpack)
 	.pipe(gulpif(prod, strip()))
 	.pipe(gulp.dest('./dist/js'))
+	.pipe(server.stream())
 }
 
 function html_data() {
@@ -57,7 +58,8 @@ function html_data() {
 					return data;
 			}
 	}))
-	.pipe(gulp.dest('./src/temp'));
+	.pipe(gulp.dest('./src/temp'))
+	.pipe(server.stream())
 }
 
 function html(){
@@ -70,6 +72,7 @@ function html(){
 			basedir: './'
 	}))
 	.pipe(gulp.dest('./dist/'))
+	.pipe(server.stream())
 }
 
 function fonts() {
@@ -104,7 +107,7 @@ function watchFile() {
 
 function browserSync() {
 	server.init({
-    server: "./src",
+    server: "./dist",
     notify: false,
     open: false,
     cors: true,
@@ -114,7 +117,9 @@ function browserSync() {
 
 exports.default = gulp.series(
 	clean, 
-	html_data, 
+	html_data,
+	fonts, 
+	images,
 	gulp.parallel(html, styles, scripts), 
 	gulp.parallel(watchFile, browserSync)
 );

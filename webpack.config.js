@@ -1,5 +1,3 @@
-const TerserPlugin = require("terser-webpack-plugin");
-
 module.exports = {
 	mode: process.env.NODE_ENV,
 	output: {
@@ -13,20 +11,14 @@ module.exports = {
 				loader: 'babel-loader',
 				query: {
 					presets: [
-						['@babel/preset-env',
+						[
+							'@babel/preset-env',
 							{
-								debug: false,
-								corejs: 3,
-								useBuiltIns: "usage",
 								targets: [
 									'last 2 versions', 'not dead', '> 0.2%',
 								]
-
 							}
 						]
-					],
-					plugins: [
-						'@babel/plugin-proposal-class-properties'
 					]
 				},
 			},

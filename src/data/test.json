@@ -1,13 +1,13 @@
 {
-	"title": "Test title",
+	"title": "Section title",
 	"posts": [
 		{
-			"title": "post title 1",
-			"name": "post name 1"
+			"title": "Post title 1",
+			"name": "Name1"
 		},
 		{
-			"title": "post title 2",
-			"name": "post name 2"
+			"title": "Post title 2",
+			"name": "Name2"
 		}
 	]
 }

@@ -1,6 +1,7 @@
-import $ from 'jquery';
+import $ from 'jquery'
+import slider from './components/sliders'
 
 $(document).ready(()=>{
-  let str = `window location is ${window.location}`;
-  console.log(str);
+	console.log(`window location is ${window.location}`)
+	slider()
 });
