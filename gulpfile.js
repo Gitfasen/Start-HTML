@@ -107,12 +107,12 @@ function watchFile() {
 
 function browserSync() {
 	server.init({
-    server: "./dist",
-    notify: false,
-    open: false,
-    cors: true,
-    ui: false
-  })
+		server: "./dist",
+		notify: false,
+		open: false,
+		cors: true,
+		ui: false
+	})
 }
 
 exports.default = gulp.series(
