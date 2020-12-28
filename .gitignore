@@ -1,8 +1,8 @@
 /node_modules/
 /dist/
+/src/temp/
 /.git/
 /.idea/
-/app/css/
 /**/_backstage
 /**/package-lock.json
 /**/Thumbs.db

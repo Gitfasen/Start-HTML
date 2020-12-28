@@ -1,0 +1,13 @@
+{
+	"title": "Test title",
+	"posts": [
+		{
+			"title": "post title 1",
+			"name": "post name 1"
+		},
+		{
+			"title": "post title 2",
+			"name": "post name 2"
+		}
+	]
+}
