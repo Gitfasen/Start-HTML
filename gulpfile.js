@@ -1,5 +1,6 @@
 const prod          = process.env.NODE_ENV == 'production'
 const gulp          = require('gulp')
+const	gulpif        = require('gulp-if')
 const	server        = require('browser-sync').create()
 const	rename_file   = require('gulp-rename')
 const	del           = require('del')
@@ -11,20 +12,22 @@ const	autoprefixer  = require('gulp-autoprefixer')
 const	sourcemaps		= require('gulp-sourcemaps')
 const	pug           = require('gulp-pug')
 const	data          = require('gulp-data')
+const	merge         = require('gulp-merge-json')
 const imagemin      = require('gulp-image')
 const	fs            = require('fs')
 const	path          = require('path')
-const	merge         = require('gulp-merge-json')
 const	strip         = require('gulp-strip-comments')
-const	gulpif        = require('gulp-if')
 const	webpack       = require('webpack')
 const	webpackStream = require('webpack-stream')
 const	webpackConfig = require('./webpack.config.js')
 
+/* ========================= */
+/* === Обработка стилей ==== */
+/* ========================= */
 function styles() {
 	return gulp.src( './src/scss/main.scss')
 	.pipe(gulpif(!prod, sourcemaps.init()))
-	.pipe(sassGlob())
+	.pipe(sassGlob()) // автоимпорт всех файлов из папки компонентов
 	.pipe(sass({
 		outputeStyle: "expanded"
 	}))
@@ -37,23 +40,30 @@ function styles() {
 	.pipe(server.stream())
 }
 
+/* ========================= */
+/* == Обработка скриптов === */
+/* ========================= */
 function scripts() {
 	return gulp.src('./src/js/app.js')
-	.pipe(webpackStream(webpackConfig), webpack)
-	.pipe(gulpif(prod, strip()))
+	.pipe(webpackStream(webpackConfig), webpack) // пропускаем все черех вебпак
+	.pipe(gulpif(prod, strip())) // удаляем коменты
 	.pipe(gulp.dest('./dist/js'))
 	.pipe(server.stream())
 }
 
+/* ========================= */
+/* = Создание общего json == */
+/* ========================= */
 function html_data() {
 	return gulp.src('./src/data/**/*.json')
+	// мержим все файлы контента с папки data и берем название файла как ключ
 	.pipe(merge({
 			fileName: 'data.json',
 			edit: (json, file) => {
 					const filename = path.basename(file.path),
 								primaryKey = filename.replace(path.extname(filename), '');
 					const data = {};
-					data[primaryKey.toUpperCase()] = json;
+					data[primaryKey.toUpperCase()] = json; // тут можно убрать капс для ключа
 
 					return data;
 			}
@@ -62,24 +72,33 @@ function html_data() {
 	.pipe(server.stream())
 }
 
+/* ========================= */
+/* Обработка html через pug  */
+/* ========================= */
 function html(){
 	return gulp.src('./src/views/*.pug')
 	.pipe(data(function() {
-		return JSON.parse(fs.readFileSync('./src/temp/data.json'))
+		return JSON.parse(fs.readFileSync('./src/temp/data.json')) // добавляем данные с json для всех файлов pug
 	}))
 	.pipe(pug({
 			pretty: true,
-			basedir: './'
+			basedir: './src/views'
 	}))
 	.pipe(gulp.dest('./dist/'))
 	.pipe(server.stream())
 }
 
+/* ========================= */
+/* === Обработка шрифтов === */
+/* ========================= */
 function fonts() {
 	return gulp.src('src/fonts/**/*')
 	.pipe(gulp.dest('dist/fonts'));
 }
 
+/* ========================= */
+/* == Оптимизация картинок = */
+/* ========================= */
 function images() {
 	return gulp.src('src/img/**/*')
 	.pipe(imagemin({
@@ -94,10 +113,16 @@ function images() {
 	.pipe(gulp.dest('dist/img'));
 }
 
+/* ========================= */
+/* ===== Очистка папки ===== */
+/* ========================= */
 function clean() {
 	return del('dist/')
 }
 
+/* =========================== */
+/* Функции слежение за файлами */
+/* =========================== */
 function watchFile() {
 	gulp.watch(['./src/scss/**/*.scss'], styles);
 	gulp.watch(['./src/js/**/*.js'], scripts);
@@ -105,6 +130,9 @@ function watchFile() {
 	gulp.watch(['./src/data/**/*.json'], gulp.series(html_data, html));
 };
 
+/* =========================== */
+/* ====== Запуск сервера ===== */
+/* =========================== */
 function browserSync() {
 	server.init({
 		server: "./dist",
@@ -115,6 +143,10 @@ function browserSync() {
 	})
 }
 
+/* ================================== */
+/* ==== Создание команд консоли ===== */
+/* = запускать через скрипты ноды === */
+/* ================================== */
 exports.default = gulp.series(
 	clean, 
 	html_data,

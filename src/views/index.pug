@@ -1,9 +1,7 @@
-extends components/layout.pug
+extends layout/default.pug
 
 //- Main content
 block content
-	h1= TEST['title'] 
-	each post in TEST['posts']
-		include components/news.pug
+	include section/news.pug
 
 
