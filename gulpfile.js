@@ -29,7 +29,10 @@ function styles() {
 		.pipe(gulpif(!prod, sourcemaps.init()))
 		.pipe(sassGlob()) // автоимпорт всех файлов из папки компонентов
 		.pipe(sass({
-				outputeStyle: "expanded"
+				outputeStyle: "expanded",
+        includePaths: [
+          'node_modules/bootstrap/scss/'
+        ]
 		}))
 		.pipe(group_media())
 		.pipe(rename_file({ suffix: '.min', prefix : '' }))
@@ -104,6 +107,10 @@ function fonts() {
 /* ============================================= */
 function images() {
 	return gulp.src('src/img/**/*')
+		.pipe(gulp.dest('dist/img'));
+}
+function image_optimize() {
+	return gulp.src('src/img/**/*')
 		.pipe(gulpif(prod, imagemin({
 				optipng: ['-i 1', '-strip all', '-fix', '-o7', '-force'],
 				pngquant: ['--speed=1', '--force', 256],
@@ -163,11 +170,8 @@ exports.build = gulp.series(
 	clean, 
 	html_data, 
 	fonts, 
-	images,
+	images, // или image_optimize
 	gulp.parallel(html, styles, scripts)
-);
+)
 
-exports.build_prod = gulp.series(
-	clean, 
-	gulp.parallel(styles, scripts)
-);
+exports.build_prod = gulp.parallel(styles, scripts)
